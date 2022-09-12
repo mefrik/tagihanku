@@ -17,6 +17,8 @@ const Colors = {
   body_bg: "#f3f6f9",
   white: "#fff",
   black: "#000",
+  transparant: "#FFFFF",
+  search: "#A66CFF",
 };
 
 const theme = createTheme({
@@ -26,7 +28,13 @@ const theme = createTheme({
         },
         secondary: {
             main: Colors.secondary
-        }
+        },
+        transparant: {
+            main: Colors.transparant
+        },
+        search: {
+            main: Colors.search
+        },
     },
     components: {
         MuiButton: {

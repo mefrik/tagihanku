@@ -1,4 +1,0 @@
-Untuk melakukan import data 3D Asset
-1. Data harus berformat .glb
-2. Instruksi [ npx gltfjsx "Nama asset".glb ]
-3. Pindahkan asset ke dalam Component supaya dapat dipanggil

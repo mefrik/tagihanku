@@ -1,8 +1,9 @@
 import React from 'react'
-import LoginPage from './LoginPage'
+import LoginForm from './LoginForm'
 
-export default function indexLogin() {
+
+export default function IndexLogin() {
   return (
-    <LoginPage/>
+    <LoginForm/>
   )
 }
