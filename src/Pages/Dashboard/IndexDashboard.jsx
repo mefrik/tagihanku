@@ -10,7 +10,7 @@ export default function IndexDashboard() {
   const [email, setEmail] = React.useState('');
   const [verified, setVerified] = React.useState(false);
   const [role, setRole] = React.useState("");
-  const [id,  setId] = React.useState("");
+  const [userId,  setUserId] = React.useState("");
 
 
   const handleGetUser = () => {
@@ -20,9 +20,9 @@ export default function IndexDashboard() {
         const q = query(collection(db, "account"), where("name", "==", user.displayName));
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
-          setPhoneNumber(doc.data().phonenumber)
+          setPhoneNumber(doc.data().phoneNumber)
           setRole(doc.data().role)
-          setId(doc.id)
+          setUserId(doc.id)
         });
         setName(user.displayName);
         setPhoto(user.photoURL);
@@ -36,10 +36,10 @@ export default function IndexDashboard() {
     })
   }
 
-  
   React.useEffect(() => {
     handleGetUser()
-  }, [])
+    localStorage.setItem('userId', JSON.stringify(userId));
+  }, [userId]);
 
   return (
     <>
@@ -50,7 +50,7 @@ export default function IndexDashboard() {
         photo={photo}
         verified={verified}
         role={role}
-        id={id}
+        userId={userId}
       />
     </>
   )

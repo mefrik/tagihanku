@@ -1,8 +1,8 @@
 import React from 'react'
-import Transaction from './Transaction'
+import { Outlet } from 'react-router-dom'
 
 export default function IndexTransaction() {
   return (
-    <Transaction/>
+    <Outlet/>
   )
 }

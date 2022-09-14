@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import Fab from '@mui/material/Fab';
 import AddIcon from '@mui/icons-material/Add';
 import { styled, Tooltip, tooltipClasses } from '@mui/material';
-import AddElectricity from '../Modal/AddElectricity';
+import AddElectricity from '../Form/AddElectricity';
 
 const CustomizeToolTip = styled(({ className, ...props }) => (
     <Tooltip {...props} arrow classes={{ popper: className }} />
@@ -20,13 +20,12 @@ const CustomizeToolTip = styled(({ className, ...props }) => (
     },
 }));
 
-export default function AddButton({tag}) {
+export default function AddButton({tag, handleGetData}) {
   const [openModal, setOpenModal] = useState(false);
 
   const handleOpen = () => {
-    setOpenModal(!setOpenModal)
+    setOpenModal(!openModal)
   }
-
 
   return (
     <Box sx={{ '& > :not(style)': { m: 1 } }}>
@@ -35,7 +34,16 @@ export default function AddButton({tag}) {
                 <AddIcon />
             </Fab>
         </CustomizeToolTip>
-        <AddElectricity tag={tag} open={openModal} handleOpen={handleOpen} />
+        {tag == 'electricity'?
+          <AddElectricity 
+            tag={tag} 
+            open={openModal} 
+            handleOpen={handleOpen} 
+            handleGetData={handleGetData}
+          />
+          :
+          ""
+        }
     </Box>
   );
 }

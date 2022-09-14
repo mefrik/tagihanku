@@ -142,7 +142,7 @@ const TypographySearch = styled(Typography)(() => ({
   textTransform: "capitalize",
 }))
 
-export default function Drawer({email, name, phoneNumber, photo, verified, role, id}) {
+export default function Drawer({email, name, phoneNumber, photo, verified, role, userId}) {
   const appBarIconSize = 30;
   const { enqueueSnackbar } = useSnackbar();
   const [open, setOpen] = React.useState(false);
@@ -213,7 +213,7 @@ export default function Drawer({email, name, phoneNumber, photo, verified, role,
                 onClick={handleProfileOpen}
               >
                 <Avatar
-                  alt="Aditya Rachman" //user login
+                  alt={name}
                   src={photo}
                   sx={{ width: appBarIconSize, height: appBarIconSize }}
                 />
@@ -247,7 +247,7 @@ export default function Drawer({email, name, phoneNumber, photo, verified, role,
         <DrawerProfile openDrawerProfile={openDrawerProfile}>
           <BoxProfile>
             <Avatar
-              alt="Aditya Rachman" //user login
+              alt={name}
               src={photo}
               sx={{ width: 50, height: 50 }}
             />
@@ -260,9 +260,9 @@ export default function Drawer({email, name, phoneNumber, photo, verified, role,
         <ListItems component="nav" open={open}/>
       </Main>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-        <DrawerProfile />
+        <DrawerProfile/>
         <Container maxWidth="100%" sx={{ mt: 2, mb: 2 }}>
-            <Outlet />
+            <Outlet/>
         </Container>
       </Box>
     </Box>

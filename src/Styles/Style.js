@@ -16,8 +16,7 @@ const Colors = {
   dove_gray: "#d5d5d5",
   body_bg: "#f3f6f9",
   white: "#fff",
-  black: "#000",
-  transparant: "#FFFFF",
+  black: "#EEEEEE",
   search: "#A66CFF",
 };
 
@@ -28,9 +27,6 @@ const theme = createTheme({
         },
         secondary: {
             main: Colors.secondary
-        },
-        transparant: {
-            main: Colors.transparant
         },
         search: {
             main: Colors.search

@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function Water() {
+export default function MainTable() {
   return (
     <div>Water</div>
   )

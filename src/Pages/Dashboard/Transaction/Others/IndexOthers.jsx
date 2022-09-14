@@ -1,8 +1,8 @@
 import React from 'react'
-import Others from './Others'
+import MainTable from './MainTable'
 
 export default function IndexOthers() {
   return (
-    <Others/>
+    <MainTable/>
   )
 }

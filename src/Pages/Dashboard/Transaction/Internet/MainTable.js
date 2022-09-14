@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function Internet() {
+export default function MainTable() {
   return (
     <div>Internet</div>
   )

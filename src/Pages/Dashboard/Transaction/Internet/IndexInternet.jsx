@@ -1,8 +1,8 @@
 import React from 'react'
-import Internet from './Internet'
+import MainTable from './MainTable'
 
 export default function IndexInternet() {
   return (
-    <Internet/>
+    <MainTable/>
   )
 }

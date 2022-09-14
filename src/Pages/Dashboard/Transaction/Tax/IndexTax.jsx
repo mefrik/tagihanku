@@ -1,8 +1,8 @@
 import React from 'react'
-import Tax from './Tax'
+import MainTable from './MainTable'
 
 export default function IndexTax() {
   return (
-    <Tax/>
+    <MainTable/>
   )
 }

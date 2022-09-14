@@ -14,9 +14,9 @@ import { BarWave } from "react-cssfx-loading";
 
 
 const CustomeBox = styled(Box)(() => ({
-  borderRadius: '5px',
-  boxShadow: '0px 2px 10px 0px rgb(0,0,0,0.05)',
-  border: 'none',
+    borderRadius: '5px',
+    boxShadow: '0px 2px 10px 0px rgb(0,0,0,0.05)',
+    border: 'none',
 }))
 const StyledTableContainer = styled(TableContainer)(() => ({
     height: 'auto',
@@ -25,7 +25,7 @@ const StyledTableContainer = styled(TableContainer)(() => ({
 }))
 const TabColumn = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
-        backgroundColor: "#FBDF07",
+        // backgroundColor: "#FBDF07",
         color: "black",
         border: 'none',
         fontSize: '16px',
@@ -82,7 +82,7 @@ const columns = [
     },
     {
         id: 'Usage',
-        label: 'Usage',
+        label: 'Usage (kW.h)',
         minWidth: 2,
         align: 'left',
     },
@@ -106,7 +106,7 @@ const columns = [
     },
 ];
 
-export default function MainTable(){
+export default function MainTable({datas}){
     const loading = false;
 
     return(
@@ -128,46 +128,47 @@ export default function MainTable(){
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                      <TabRow>
-                          <TabCell align="center">
-                            1
-                          </TabCell>
-                          <TabCell align="left">
-                            12 September 2022
-                          </TabCell>
-                          <TabCell align="left">
-                            PLN
-                          </TabCell>
-                          <TabCell align="left">
-                            <NumericFormat 
-                              value={1.2}
-                                displayType={'text'}
-                                thousandSeparator={true}
-                                decimalScale={2}
-                                suffix={' kWH'}
-                            />
-                          </TabCell>
-                          <TabCell align="left">
-                            <NumericFormat 
-                              value={88000}
-                                displayType={'text'}
-                                thousandSeparator={true}
-                                decimalScale={2}
-                                prefix={'Rp. '}
-                            />
-                          </TabCell>
-                          <TabCell align="center">
-                            <Chip label="Paid" color="success" icon={<DoneIcon />}/>
-                          </TabCell>
-                          <TabCell align="center">
-                            <Button 
-                                variant='contained' 
-                                size="small"
-                            >
-                                Detail
-                            </Button>
-                          </TabCell>
-                      </TabRow>
+                        {datas.map((data,index) => (
+                            <TabRow key={index}>
+                                <TabCell align="center">
+                                    {index + 1}
+                                </TabCell>
+                                <TabCell align="left">
+                                    {data.date}
+                                </TabCell>
+                                <TabCell align="left">
+                                    {data.company}
+                                </TabCell>
+                                <TabCell align="left">
+                                    <NumericFormat 
+                                        value={data.usage}
+                                        displayType={'text'}
+                                        thousandSeparator={true}
+                                        decimalScale={2}
+                                    />
+                                </TabCell>
+                                <TabCell align="left">
+                                    <NumericFormat 
+                                        value={data.cost}
+                                        displayType={'text'}
+                                        thousandSeparator={true}
+                                        decimalScale={2}
+                                        prefix={'Rp. '}
+                                    />
+                                </TabCell>
+                                <TabCell align="center">
+                                    <Chip label="Paid" color="success" icon={<DoneIcon />}/>
+                                </TabCell>
+                                <TabCell align="center">
+                                    <Button 
+                                        variant='contained' 
+                                        size="small"
+                                    >
+                                        Detail
+                                    </Button>
+                                </TabCell>
+                            </TabRow>
+                        ))}
                     </TableBody>
                 </Table>
                 :

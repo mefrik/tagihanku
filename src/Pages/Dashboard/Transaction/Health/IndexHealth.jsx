@@ -1,8 +1,8 @@
 import React from 'react'
-import Health from './Health'
+import MainTable from './MainTable'
 
 export default function IndexHealth() {
   return (
-    <Health/>
+    <MainTable/>
   )
 }

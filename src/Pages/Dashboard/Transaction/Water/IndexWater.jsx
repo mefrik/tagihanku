@@ -1,8 +1,8 @@
 import React from 'react'
-import Water from './Water'
+import MainTable from './MainTable'
 
 export default function IndexWater() {
   return (
-    <Water/>
+    <MainTable/>
   )
 }

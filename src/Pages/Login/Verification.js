@@ -87,7 +87,7 @@ export default function Verfication() {
         const querySnapshot = await getDocs(q);
         setDataId(querySnapshot.docs[0].id)
         querySnapshot.forEach((doc) => {
-          setNoHp(doc.data().phonenumber)
+          setNoHp(doc.data().phoneNumber)
           setName(doc.data().name)
         })
       }
@@ -153,7 +153,7 @@ export default function Verfication() {
     const database = doc(db, "account", dataID)
     await updateDoc(database, {
       name: name,
-      phonenumber : noHp,
+      phoneNumber : noHp,
     });
   }
   const saveData = async (url) => {
