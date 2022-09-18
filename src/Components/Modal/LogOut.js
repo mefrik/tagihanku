@@ -1,6 +1,5 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button, Grid } from '@mui/material';
@@ -38,7 +37,7 @@ export default function LogOut({open, handleOpenModal}) {
     try{
       await signout()
       navigate('/')
-      enqueueSnackbar("Berhasil keluar dari sistem", {variant:"warning"});
+      enqueueSnackbar("You has been LogOut from sistem", {variant:"warning"});
     }catch(error){
       console.log(error)
     }

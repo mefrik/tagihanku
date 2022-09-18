@@ -1,56 +1,19 @@
 import React from 'react'
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { auth, db } from '../../Auth/firebase-config';
 import Drawer from './Drawer'
+import useGetUserLogin from '../../hooks/useGetUserLogin';
 
 export default function IndexDashboard() {
-  const [name, setName] = React.useState('');
-  const [photo, setPhoto] = React.useState('');
-  const [phoneNumber, setPhoneNumber] = React.useState('');
-  const [email, setEmail] = React.useState('');
-  const [verified, setVerified] = React.useState(false);
-  const [role, setRole] = React.useState("");
-  const [userId,  setUserId] = React.useState("");
-
-
-  const handleGetUser = () => {
-    //getUser
-    auth.onAuthStateChanged(async (user) =>{
-      if (user !== null) {
-        const q = query(collection(db, "account"), where("name", "==", user.displayName));
-        const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc) => {
-          setPhoneNumber(doc.data().phoneNumber)
-          setRole(doc.data().role)
-          setUserId(doc.id)
-        });
-        setName(user.displayName);
-        setPhoto(user.photoURL);
-        setEmail(user.email);
-        setVerified(user.emailVerified);
-
-      }else {
-      // User is signed out
-      // ...
-      }
-    })
-  }
-
-  React.useEffect(() => {
-    handleGetUser()
-    localStorage.setItem('userId', JSON.stringify(userId));
-  }, [userId]);
-
+  const user = useGetUserLogin()
   return (
     <>
       <Drawer
-        email={email}
-        name={name}
-        phoneNumber={phoneNumber}
-        photo={photo}
-        verified={verified}
-        role={role}
-        userId={userId}
+        isLoading={user.isLoading}
+        name={user.name}
+        email={user.email}
+        phoneNumber={user.phoneNumber}
+        photo={user.photo}
+        verified={user.verified}
+        uid={user.uid}
       />
     </>
   )

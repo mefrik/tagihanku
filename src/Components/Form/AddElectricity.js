@@ -21,8 +21,8 @@ import {
   styled,
   Select,
   MenuItem,
+  Fab,
 } from '@mui/material';
-import { ref as refStorage, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useSnackbar } from 'notistack';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
@@ -33,8 +33,10 @@ import tokopediaLogos from '../../Assets/Images/tokopedia.png';
 import gopayLogos from '../../Assets/Images/gopay.png';
 import ovoLogos from '../../Assets/Images/ovo.png';
 import danaLogos from '../../Assets/Images/dana.png';
-import { storage } from '../../Auth/firebase-config';
-import { getDatabase, ref as dbref, set } from 'firebase/database';
+import CheckIcon from '@mui/icons-material/Check';
+import { green } from '@mui/material/colors';
+import usePushUpload from '../../hooks/usePushUpload';
+import useCreateValue from '../../hooks/useCreateValue';
 
 const MainGrid = styled(Grid)(() => ({
   display: 'flex',
@@ -61,8 +63,10 @@ const PayMentItem = styled(MenuItem)(() => ({
   alignItems: 'center',
 }))
 
-export default function AddElectricity({open, handleOpen, tag, handleGetData}) {
+export default function AddElectricity({user, open, handleOpen, tag, handleGetData}) {
   const { enqueueSnackbar } = useSnackbar();
+  const [isLoading, setIsLoading] = React.useState(false)
+  const [success, setSuccess] = React.useState(false)
   const [valCompany, setValCompany] = React.useState('PLN');
   const [valCustomerId, setValCustomerId] = React.useState('');
   const [valUsage, setValUsage] = React.useState(0);
@@ -72,111 +76,173 @@ export default function AddElectricity({open, handleOpen, tag, handleGetData}) {
   const [valPayment, setValPayment] = React.useState('');
   const [valAdminFee, setValAdminFee] = React.useState(null);
   const [valCashback, setValCashback] = React.useState(null);
-  const [valDate, setValDate] = React.useState(null);
+  const [valBillDate, setValBillDate] = React.useState(dayjs());
   const [valBill, setValBill] = React.useState(0);
-  const [loading,setLoading] = React.useState(false);
-  const [userId,  setUserId] = React.useState("");
-  const [proofOfPayment, setProofOfPayment] = React.useState(false);
-  const [paymentStatus, setPaymentStatus] = React.useState([]);
   const [imag, setImag] = React.useState("");
-  const [dataImage, setDataImage] = React.useState([]);
-  const [photo, setPhoto] = React.useState("");
+  const [dataImage, setDataImage] = React.useState(null);
+  const [paymentPhoto, setPaymentPhoto] = React.useState(null);
+  const [errCustomerId, setErrCustomerId] = React.useState(false);
+  const [errBillDate, setErrBillDate] = React.useState(false);
+  const [errStandMeterFrom, setErrStandMeterFrom] = React.useState(false);
+  const [errStandMeterUntil, setErrStandMeterUntil] = React.useState(false);
+  const [errCost, setErrCost] = React.useState(false);
+  const [errAdminFee, setErrAdminFee] = React.useState(false);
+  const [errUploadButton, setErrUploadButton] = React.useState(false);
+  const [paymentSelected, setPaymentSelected] = React.useState(false);
 
-  let dateNow = new Date();
-  let dateMonth = dateNow.getMonth();
-  let dateYear = dateNow.getFullYear();
-  let timeNow = dateNow.getTime();
 
   const handleChangeValCompany = (data) => {
     setValCompany(data.target.value)
   }
   const handleChangeValCustomerId = (data) => {
     setValCustomerId(data.target.value)
+    setErrCustomerId(false)
   }
   const handleChangeValStandMeterFrom = (data) => {
     setValStandMeterFrom(data.value)
+    setValUsage(valStandMeterUntil - data.value)
+    setErrStandMeterFrom(false)
   }
   const handleChangeValStandMeterUntil = (data) => {
     setValStandMeterUntil(data.value)
     setValUsage(data.value - valStandMeterFrom)
+    setErrStandMeterUntil(false)
   }
   const handleChangeValCost = (data) => {
     setValCost(data.value)
+    setErrCost(false)
   }
   const handleChangeValAdminFee = (data) => {
     setValAdminFee(data.value)
     setValBill(valCost - data.value)
+    setErrAdminFee(false)
   }
   const handleChangeValCashback = (data) => {
     setValCashback(data.value)
   }
   const handlePaymentSelected = (data) => {
     setValPayment(data.target.value)
+    setPaymentSelected(true)
   }
-  const handleProofOfPayment = (data) => {
-    setProofOfPayment(data.target.value)
+
+  function beforeSumbitChecklist () {
+    if(valCustomerId === ''){
+      setErrCustomerId(true)
+    }
+    if(valBillDate === ''){
+      enqueueSnackbar(`Please double check, bill date cant be empty`, {variant:"warning"});
+      setErrBillDate(true)
+    }
+    if(valStandMeterFrom === null){
+      setErrStandMeterFrom(true)
+    }
+    if(valStandMeterUntil === null){
+      setErrStandMeterUntil(true)
+    }
+    if(valCost === null){
+      setErrCost(true)
+    }
+    if(valAdminFee === null){
+      setErrAdminFee(true)
+    }
+    if(dataImage === null){
+      setErrUploadButton(true)
+    }
+    if(
+      valCustomerId !== '' &&
+      valBillDate !== '' &&
+      valStandMeterFrom != null &&
+      valStandMeterUntil != null &&
+      valCost !== null &&
+      valAdminFee !== null &&
+      errUploadButton !== null
+    ){
+      handleUpload()
+    }
   }
+
+  const userId = JSON.parse(localStorage.getItem('userId'));
+  let dateNow = new Date();
+  let timeNow = dateNow.toLocaleDateString('id-ID', {day: '2-digit', month: 'long',year: 'numeric'});
+  let dateId = valBillDate.$d.toLocaleDateString('id-ID', {month: 'long', year: 'numeric'});
 
   const HandleGetImage = (event) => {
     // console.log(event.target.files[0])
     setDataImage(event.target.files[0])
     setImag(URL.createObjectURL(event.target.files[0]))
-  }
-  const handleUpload = () =>{
-    return new Promise(resolve => {
-        const storageRef = refStorage(storage,`/Transaction/${tag}/${valCustomerId.remarks} (${valCustomerId.idCustomer}) - ${dateMonth}${dateYear}.jpeg`);
-        const uploadTask = uploadBytesResumable(storageRef, dataImage);
-
-        uploadTask.on('state_changed', (snapshot) =>{
-            const prog = Math.round(
-                (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-                );
-                // setProgress(prog)
-            },
-            (err) => console.log(err),
-            () => {
-                getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-                    setPhoto(url)
-                    console.log(url)
-                    resolve("Upload Selesai")
-                })
-            }
-        );
-    })
+    setErrUploadButton(false)
   }
 
-  async function handleSubmit() {
-    await handleUpload().then(() => {
-      let dateId = valDate.$d.getTime();
-      const db = getDatabase();
-      return new Promise(resolve => {
-        set(dbref(db, `/transaction/${tag}/${timeNow}`), {
-          id: userId,
-          createdAt: timeNow,
-          date: dateId,
-          company: valCompany,
-          customerId: valCustomerId.idCustomer,
-          customerName: valCustomerId.remarks,
-          standMater: {
-            from: valStandMeterFrom,
-            until: valStandMeterUntil,
-          },
-          usage: valUsage,
-          paymentMethod: valPayment,
-          cost: valCost,
-          adminFee: valAdminFee,
-          cashback: valCashback,
-          bill: valBill,
-          paymentPhoto : photo,
-        }).then(() => {
-          enqueueSnackbar("Data berhasil ditambahkan", {variant:"info"});
-          handleClose()
-          resolve('Database sukses ditambahkan')
-        }).catch((error) => {
-          enqueueSnackbar(`Terjadi Error : ${error}`, {variant:"info"});
-        })
-      })
-    })
+  //Handle Upload
+  const pathUpload = `/Transaction/${tag}/${userId}/${valCustomerId.remarks} (${valCustomerId.idCustomer}) - ${dateId}.jpeg`
+  const upload = usePushUpload(pathUpload, dataImage, false)
+  const handleUpload = () => {
+    if(dataImage !== null){
+      upload.getProcessUpload()
+    } else {
+      handlePostElectric()
+    }
+  }
+  
+
+  //Handle Write Database
+  const postElectric = useCreateValue()
+  const handlePostElectric = async () => {
+    const userId = JSON.parse(localStorage.getItem('userId'));
+    const path = `/transaction/${tag}/${user.uid}`
+    if(dataImage !== null){
+      const postData = {
+        id: valBillDate.$d.getTime(),
+        createdAt: timeNow,
+        billDate: dateId,
+        company: valCompany,
+        customerId: valCustomerId.idCustomer,
+        unitName: valCustomerId.remarks,
+        standMeterFrom: valStandMeterFrom,
+        standMeterUntil: valStandMeterUntil,
+        usage: valUsage,
+        paymentMethod: valPayment,
+        paymentStatus: true,
+        cost: valCost,
+        adminFee: valAdminFee,
+        cashback: valCashback,
+        bill: valBill,
+        paymentPhoto : upload.urlPhoto,
+        userName: user.name,
+        userId: userId,
+      }
+      await postElectric.pushValue(path, postData)
+      handleClose()
+      enqueueSnackbar("Data has been saved", {variant:"info"})
+    } else {
+      setIsLoading(true)
+      setSuccess(true)
+      const postData = {
+        id: valBillDate.$d.getTime(),
+        createdAt: timeNow,
+        billDate: dateId,
+        company: valCompany,
+        customerId: valCustomerId.idCustomer,
+        unitName: valCustomerId.remarks,
+        standMeterFrom: valStandMeterFrom,
+        standMeterUntil: valStandMeterUntil,
+        usage: valUsage,
+        paymentMethod: valPayment,
+        paymentStatus: false,
+        cost: valCost,
+        adminFee: valAdminFee,
+        cashback: valCashback,
+        bill: valBill,
+        paymentPhoto: '',
+        userName: user.name,
+        userId: userId,
+      }
+      await postElectric.pushValue(path, postData)
+      setTimeout(() => {
+        handleClose()
+        enqueueSnackbar("Data has been saved", {variant:"info"})
+      }, 2000);
+    }
   }
 
     
@@ -197,15 +263,34 @@ export default function AddElectricity({open, handleOpen, tag, handleGetData}) {
     setValPayment('')
     setValAdminFee(null)
     setValCashback(null)
-    setValDate(dayjs())
     setValBill(null)
+    setValBillDate(dayjs())
+    setValCompany('PLN')
+    setDataImage(null)
+    setPaymentPhoto(null)
+    setImag('')
+    setErrCustomerId(false)
+    setErrBillDate(false)
+    setErrStandMeterFrom(false)
+    setErrStandMeterUntil(false)
+    setPaymentSelected(false)
+    setErrCost(false)
+    setErrAdminFee(false)
+    setErrUploadButton(false)
+    setIsLoading(false)
+    setSuccess(false)
   }
 
+  
+  React.useEffect(() => {
+    if(upload.urlPhoto){
+      handlePostElectric()
+    }
+  }, [upload.urlPhoto])
 
   return (
     <div>
       <Dialog
-        fullWidth={true}
         maxWidth={'md'}
         open={open}
         onClose={handleClose}
@@ -240,6 +325,9 @@ export default function AddElectricity({open, handleOpen, tag, handleGetData}) {
                 <Stack flex={2}>
                   <FormControl fullWidth>
                     <Select
+
+                      required
+                      error={errCustomerId}
                       value={valCustomerId}
                       onChange={handleChangeValCustomerId}
                     >
@@ -257,17 +345,19 @@ export default function AddElectricity({open, handleOpen, tag, handleGetData}) {
                   </FormControl>
                 </Stack>
               </Grid>
-              {/* Date */}
-              <Grid sx={{display: 'flex', alignItems: 'center', mb:'20px'}} key='Date'>
-                <Typography flex={1}>Date</Typography>
+              {/* Bill Date  */}
+              <Grid sx={{display: 'flex', alignItems: 'center', mb:'20px'}} key='Bill Date'>
+                <Typography flex={1}>Bill Date</Typography>
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <Stack flex={2}>
                     <DatePicker
+                      required
+                      error={errBillDate}
                       views={['year', 'month']}
                       minDate={dayjs('2012-03-01')}
                       maxDate={dayjs('2023-06-01')}
-                      value={valDate}
-                      onChange={(newValue) => {setValDate(newValue)}}
+                      value={valBillDate}
+                      onChange={(newValue) => {setValBillDate(newValue)}}
                       renderInput={(params) => <TextField {...params} helperText={null} />}
                     />
                   </Stack>
@@ -280,6 +370,8 @@ export default function AddElectricity({open, handleOpen, tag, handleGetData}) {
                   {/* FROM */}
                   <Stack>
                     <NumericFormat
+                      required
+                      error={errStandMeterFrom}
                       value={valStandMeterFrom}
                       customInput={TextField}
                       onValueChange={(values) => {handleChangeValStandMeterFrom(values)}}
@@ -291,6 +383,8 @@ export default function AddElectricity({open, handleOpen, tag, handleGetData}) {
                   {/* UNTIL */}
                   <Stack>
                     <NumericFormat
+                      required
+                      error={errStandMeterUntil}
                       value={valStandMeterUntil}
                       customInput={TextField}
                       onValueChange={(value) => {handleChangeValStandMeterUntil(value)}}
@@ -321,39 +415,13 @@ export default function AddElectricity({open, handleOpen, tag, handleGetData}) {
             <Divider orientation="vertical" flexItem/>
             <SubGrid item xs>
               <SubTitle>Payment</SubTitle>
-              {/* Method */}
-              <Grid sx={{display: 'flex', alignItems: 'center', mb:'20px'}} key='Method'>
-                <Typography flex={1}>Method</Typography>
-                <Stack flex={2}>
-                  <FormControl fullWidth>
-                    <Select
-                      id="demo-simple-select"
-                      value={valPayment}
-                      onChange={handlePaymentSelected}
-                    >
-                      {
-                        paymentList.map((data) => (
-                          <PayMentItem 
-                            key={data.id}
-                            value={data.name}
-                          >
-                            <img  
-                              src={data.logo}
-                              height='40px'
-                              width='auto'
-                            />
-                          </PayMentItem>
-                        ))
-                      }
-                    </Select>
-                  </FormControl>
-                </Stack>
-              </Grid>
               {/* Cost */}
               <Grid sx={{display: 'flex', alignItems: 'center', mb:'20px'}} key='Cost'>
                 <Typography flex={1}>Cost</Typography>
                 <Stack flex={2}>
                   <NumericFormat
+                    required
+                    error={errCost}
                     customInput={TextField}
                     prefix={'Rp. '}
                     thousandsGroupStyle="thousand"
@@ -368,6 +436,8 @@ export default function AddElectricity({open, handleOpen, tag, handleGetData}) {
                 <Typography flex={1}>Admin Fee</Typography>
                 <Stack flex={2}>
                   <NumericFormat
+                    required
+                    error={errAdminFee}
                     customInput={TextField}
                     prefix={'Rp. '}
                     thousandsGroupStyle="thousand"
@@ -409,37 +479,70 @@ export default function AddElectricity({open, handleOpen, tag, handleGetData}) {
                   />
                 </Stack>
               </Grid>
-              {/* Proof of payment */}
-              <Grid 
-                sx={{
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  mb:'20px', 
-                  bgcolor: '#9C9EFE', 
-                  color: 'white', 
-                  paddingLeft: '10px', 
-                  paddingRight: '20px',
-                  paddingTop: '10px',
-                  paddingBottom: '10px',
-                  borderRadius: '5px',
-                  // border: '2px dashed white',
-                }} 
-                key='Status'
-              >
-                <Typography flex={1}>Proof of payment</Typography>
-                <FormControlLabel
-                  value="start"
-                  control={
-                    <Button onChange={HandleGetImage} sx={{marginLeft: '15px'}} variant="contained" component="label">
-                      Upload
-                      <input hidden accept="image/*" multiple type="file" />
-                    </Button>
-                  }
-                  label={dataImage? dataImage.name : ""}
-                  labelPlacement="start"
-                >
-                </FormControlLabel>
+              {/* Method */}
+              <Grid sx={{display: 'flex', alignItems: 'center', mb:'20px'}} key='Method'>
+                <Typography flex={1}>Method</Typography>
+                <Stack flex={2}>
+                  <FormControl fullWidth>
+                    <Select
+                      required
+                      id="demo-simple-select"
+                      value={valPayment}
+                      onChange={handlePaymentSelected}
+                    >
+                      {
+                        paymentList.map((data) => (
+                          <PayMentItem 
+                            key={data.id}
+                            value={data.name}
+                          >
+                            <img  
+                              src={data.logo}
+                              height='40px'
+                              width='auto'
+                            />
+                          </PayMentItem>
+                        ))
+                      }
+                    </Select>
+                  </FormControl>
+                </Stack>
               </Grid>
+              {/* Proof of payment */}
+              {paymentSelected? 
+                <Grid 
+                  sx={{
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    mb:'20px', 
+                    bgcolor: '#9C9EFE', 
+                    color: 'white', 
+                    paddingLeft: '10px', 
+                    paddingRight: '20px',
+                    paddingTop: '10px',
+                    paddingBottom: '10px',
+                    borderRadius: '5px',
+                    // border: '2px dashed white',
+                  }} 
+                  key='Proof of payment'
+                >
+                  <Typography flex={1}>Proof of payment *</Typography>
+                  <FormControlLabel
+                    value="start"
+                    control={
+                      <Button color={errUploadButton? 'error' : 'primary'} onChange={HandleGetImage} sx={{marginLeft: '15px'}} variant="contained" component="label">
+                        Upload
+                        <input hidden accept="image/*" multiple type="file" />
+                      </Button>
+                    }
+                    label={dataImage? dataImage.name : null}
+                    labelPlacement="start"
+                  >
+                  </FormControlLabel>
+                </Grid>
+                :
+                null
+              }
             </SubGrid>
           </MainGrid>
         </DialogContent>
@@ -447,19 +550,46 @@ export default function AddElectricity({open, handleOpen, tag, handleGetData}) {
           <Button autoFocus onClick={handleClose} color='error'>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} variant='contained'>
+          <Button onClick={beforeSumbitChecklist} variant='contained'>
             Save
           </Button>
         </DialogActions>
-        {loading? 
+        {upload.isLoading || isLoading?
           <Backdrop
             sx={{ color: '#fff', zIndex: 1 }}
-            open={loading}
+            open={upload.isLoading || isLoading}
           >
-            <CircularProgress color="inherit"/>
+            {upload.success || success? 
+              <Fab
+                aria-label="save"
+                sx={{
+                  bgcolor: green[500], 
+                  color: '#FFFFFF', 
+                  width: '100px', 
+                  height: '100px'
+                }}
+              >
+                <CheckIcon sx={{width: '70px', height: '70px'}}/> 
+              </Fab>
+              : 
+              <>
+                <Typography fontSize={30}>
+                  {upload.progress}
+                </Typography>
+                <CircularProgress 
+                  color="primary" 
+                  size={100}
+                  sx={{
+                    color: green[500],
+                    position: 'absolute',
+                    zIndex: 1,
+                  }}
+                />
+              </>
+            }
           </Backdrop>
           :
-          ""
+          null
         }
       </Dialog>
     </div>

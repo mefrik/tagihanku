@@ -20,7 +20,7 @@ const CustomizeToolTip = styled(({ className, ...props }) => (
     },
 }));
 
-export default function AddButton({tag, handleGetData}) {
+export default function AddButton({tag, path, user, handleGetData}) {
   const [openModal, setOpenModal] = useState(false);
 
   const handleOpen = () => {
@@ -28,21 +28,23 @@ export default function AddButton({tag, handleGetData}) {
   }
 
   return (
-    <Box sx={{ '& > :not(style)': { m: 1 } }}>
+    <Box sx={{ '& > :not(style)': { m: 2 } }}>
         <CustomizeToolTip title='Add data'>
             <Fab color="primary" aria-label="add" onClick={handleOpen}>
                 <AddIcon />
             </Fab>
         </CustomizeToolTip>
-        {tag == 'electricity'?
+        {tag === 'electric'?
           <AddElectricity 
             tag={tag} 
+            path={path}
+            user={user}
             open={openModal} 
-            handleOpen={handleOpen} 
+            handleOpen={handleOpen}
             handleGetData={handleGetData}
           />
           :
-          ""
+          null
         }
     </Box>
   );

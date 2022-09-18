@@ -2,16 +2,18 @@ import React, { useState } from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
-import { signin } from '../../Auth/AuthContext';
+import { signin, signup } from '../../Auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import validator from 'validator';
 import LoadingButton from '@mui/lab/LoadingButton';
-import { auth } from '../../Auth/firebase-config';
+import { auth, dbRealtime } from '../../Auth/firebase-config';
 import { CardMedia, FormControl, IconButton, InputAdornment, InputLabel, OutlinedInput, Stack, styled, Typography } from '@mui/material';
 import bglogin from '../../Assets/Images/bglogin.jpg';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import logo from '../../Assets/Images/logo.png';
+import { ref, set } from 'firebase/database';
+import useCreateValue from '../../hooks/useCreateValue';
 
 const GridForm = styled(Grid)(() => ({
     height: "100vh",
@@ -36,7 +38,9 @@ const BoxForm = styled(Box)(() => ({
 }))
 
 
-export default function LoginForm() {
+export default function RegisterForm() {
+    const createUser = useCreateValue()
+    
     const navigate = useNavigate();
     const { enqueueSnackbar } = useSnackbar();
     const [email, setEmail] = useState('');
@@ -45,6 +49,7 @@ export default function LoginForm() {
     const [loading, setLoading] = useState(false);
     const [password, setPassword] = useState ('');
     const [showPassword, setShowPassword] = useState(false);
+
 
     const handleEmailChange = (event) => {
         if(validator.isEmail(event.target.value)){
@@ -81,18 +86,20 @@ export default function LoginForm() {
             setLoading(true)
             setCekPass(false)
             try{
-                await signin(email, password).then((userCredential) => {
-                    if(userCredential.user.emailVerified){
-                        localStorage.setItem('userId', JSON.stringify(userCredential.user.uid));
-                        navigate('/dashboard/analytics')
-                        enqueueSnackbar("Login Success", {variant:"success"});
-                    }else {
-                        navigate('/verification')
-                        enqueueSnackbar("Need verified account", {variant:"info"});
+                await signup(email, password).then( async (snapshot) => {
+                    const path = `/users/${snapshot.user.uid}`
+                    const value = {
+                        email: snapshot.user.email,
+                        uid: snapshot.user.uid,
+                        createdAt: Date.now(), 
                     }
+                    await createUser.setValue(path, value)
                 })
+                navigate('/verification')
+                enqueueSnackbar("Register Success", {variant:"success"})
+                setLoading(false)
             } catch {
-                enqueueSnackbar("Your email or password not registered", {variant:"error"});
+                enqueueSnackbar("Please check your input", {variant:"warning"});
                 setLoading(false)
             }
         }
@@ -167,7 +174,7 @@ export default function LoginForm() {
                     loading={loading}
                     onClick={HandleSubmit}
                 >
-                    Login
+                    Register
                 </LoadingButton>
             </BoxForm>
         </GridForm>

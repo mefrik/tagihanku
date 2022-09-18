@@ -48,7 +48,7 @@ const ButtonList = styled(ListItemButton)(() => ({
     },
 }))
 
-const ListItems = ({open}) => {
+const ListItems = () => {
     const params = useLocation();
     const [openMarket, setOpenMarket] = useState(false);  
     const [openModalLogOut, setOpenModalLogOut] = useState(false);
@@ -83,12 +83,12 @@ const ListItems = ({open}) => {
             </ButtonList>
             <Collapse in={openMarket} timeout='auto' unmountOnExit>
                 <List component="div" disablePadding>
-                    <Link  to='/dashboard/transaction/electricity'>
-                    <ButtonList selected={params.pathname.includes('electricity')}>
+                    <Link  to='/dashboard/transaction/electric'>
+                    <ButtonList selected={params.pathname.includes('electric')}>
                         <ListItemIcon >
-                            <FlashOnIcon sx={{color: params.pathname.includes('electricity')? "#A66CFF" : "" }}/>
+                            <FlashOnIcon sx={{color: params.pathname.includes('electric')? "#A66CFF" : "" }}/>
                         </ListItemIcon>
-                        <ListItemText primary="Electricity" />
+                        <ListItemText primary="Electric" />
                     </ButtonList>
                     </Link >
                 </List>

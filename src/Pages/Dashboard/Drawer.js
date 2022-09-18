@@ -6,7 +6,7 @@ import MuiAppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import CssBaseline from '@mui/material/CssBaseline';
 import IconButton from '@mui/material/IconButton';
-import { Avatar, Badge, Button, Container, Stack, Typography } from '@mui/material';
+import { Avatar, Badge, Button, Container, Skeleton, Stack, Typography } from '@mui/material';
 import ListItems from './ListItems';
 import { Outlet } from 'react-router-dom';
 import logo from '../../Assets/Images/logo.png';
@@ -48,7 +48,7 @@ const AppBar = styled(MuiAppBar, {
 })(({ theme, open }) => ({
   background: "rgb(255,255,255,0)",
   boxShadow: "none",
-  zIndex: theme.zIndex.drawer + 0,
+  zIndex: 1,
   transition: theme.transitions.create(['width', 'margin'], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
@@ -66,6 +66,7 @@ const AppBar = styled(MuiAppBar, {
 const Main = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
   ({ theme, open }) => ({
     '& .MuiDrawer-paper': {
+        zIndex: 1,
         position: "relative",
         whiteSpace: 'nowrap',
         width: drawerWidth,
@@ -142,7 +143,7 @@ const TypographySearch = styled(Typography)(() => ({
   textTransform: "capitalize",
 }))
 
-export default function Drawer({email, name, phoneNumber, photo, verified, role, userId}) {
+export default function Drawer({isLoading, email, name, phoneNumber, photo, verified, uid}) {
   const appBarIconSize = 30;
   const { enqueueSnackbar } = useSnackbar();
   const [open, setOpen] = React.useState(false);
@@ -212,11 +213,20 @@ export default function Drawer({email, name, phoneNumber, photo, verified, role,
                 color="inherit"
                 onClick={handleProfileOpen}
               >
-                <Avatar
-                  alt={name}
-                  src={photo}
-                  sx={{ width: appBarIconSize, height: appBarIconSize }}
-                />
+                {isLoading?
+                  <Skeleton 
+                    variant="circular" 
+                    animation="wave"
+                    width={30} 
+                    height={30}
+                  />
+                  :
+                  <Avatar
+                    alt={name}
+                    src={photo}
+                    sx={{ width: appBarIconSize, height: appBarIconSize }}
+                  />
+                }
               </IconButton>
             </BoxRightBar>
           </BoxAppBar>
@@ -245,17 +255,26 @@ export default function Drawer({email, name, phoneNumber, photo, verified, role,
           <Avatar variant="square" src={logo} sx={{width: 30, height: 30}}/>
         </DrawerLogo>
         <DrawerProfile openDrawerProfile={openDrawerProfile}>
-          <BoxProfile>
-            <Avatar
-              alt={name}
-              src={photo}
-              sx={{ width: 50, height: 50 }}
+          {isLoading?
+            <Skeleton 
+              variant="rounded"
+              animation="wave"
+              width={210} 
+              height={60} 
             />
-            <Stack>
-              <TypographyProfileName noWrap>{name}</TypographyProfileName>
-              <Typographytext noWrap>{phoneNumber}</Typographytext>
-            </Stack>
-          </BoxProfile>
+            :
+            <BoxProfile>
+              <Avatar
+                alt={name}
+                src={photo}
+                sx={{ width: 50, height: 50 }}
+              />
+              <Stack>
+                <TypographyProfileName noWrap>{name}</TypographyProfileName>
+                <Typographytext noWrap>{phoneNumber}</Typographytext>
+              </Stack>
+            </BoxProfile>
+          }
         </DrawerProfile>
         <ListItems component="nav" open={open}/>
       </Main>

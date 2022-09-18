@@ -3,7 +3,6 @@ import React from 'react'
 import { useLocation } from 'react-router-dom';
 
 export default function Menu({tag}) {
-  const params = useLocation();
   return (
     <div role="presentation">
       <Breadcrumbs aria-label="breadcrumb">
